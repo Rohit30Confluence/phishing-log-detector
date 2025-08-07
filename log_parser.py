@@ -1,17 +1,17 @@
-import re
+def read_log_file(file_path):
+    with open(file_path, 'r') as f:
+        return [line.strip() for line in f if line.strip()]
 
-def parse_log(file_path):
-    with open(file_path, "r") as f:
-        lines = f.readlines()
-
-    entries = []
-    for line in lines:
-        match = re.search(r'(?P<ip>\d+\.\d+\.\d+\.\d+).*?(https?://\S+)?', line)
-        if match:
-            entries.append({
-                "ip": match.group("ip"),
-                "url": match.group(2) or "",
-                "raw": line.strip()
-            })
-    return entries
+def parse_log_line(line):
+    import re
+    pattern = r'(?P<ip>\S+) - - \[(?P<timestamp>.*?)\] "\S+ (?P<url>\S+) HTTP/\S+"'
+    match = re.search(pattern, line)
+    if match:
+        return {
+            "ip": match.group("ip"),
+            "timestamp": match.group("timestamp"),
+            "url": match.group("url"),
+            "raw": line
+        }
+    return {"ip": "", "timestamp": "", "url": "", "raw": line}
 

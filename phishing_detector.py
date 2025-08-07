@@ -5,13 +5,22 @@ def load_indicators(file_path):
     except FileNotFoundError:
         return set()
 
-def detect_phishing(entries):
-    suspicious_ips = load_indicators("indicators/blacklisted_ips.txt")
-    suspicious_urls = load_indicators("indicators/suspicious_urls.txt")
 
-    flagged = []
-    for entry in entries:
-        if entry["ip"] in suspicious_ips or any(ind in entry["url"] for ind in suspicious_urls):
-            flagged.append(entry["raw"])
-    return flagged
+def detect_phishing(parsed_logs, blacklisted_ips, suspicious_urls):
+    detected = []
+    for entry in parsed_logs:
+        ip = entry.get("ip", "")
+        url = entry.get("url", "")
+
+        reasons = []
+        if ip in blacklisted_ips:
+            reasons.append("Blacklisted IP")
+        if any(susp_url in url for susp_url in suspicious_urls):
+            reasons.append("Suspicious URL")
+
+        if reasons:
+            entry["reason"] = ", ".join(reasons)
+            detected.append(entry)
+    return detected
+
 
